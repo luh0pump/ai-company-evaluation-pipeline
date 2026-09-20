@@ -1,40 +1,59 @@
 # AI Company Evaluation Pipeline
 
-Small clean-room portfolio project that separates **website collection** from **AI evaluation** so the same scraped content can be reused across multiple customer-specific prompt configurations.
+[![tests](https://github.com/luh0pump/ai-company-evaluation-pipeline/actions/workflows/tests.yml/badge.svg)](https://github.com/luh0pump/ai-company-evaluation-pipeline/actions/workflows/tests.yml)
 
-The repository is intentionally narrow. It is a CLI/data-pipeline demo, not a SaaS product.
+A compact, production-minded Python reference for turning company lists and website content into **validated, structured LLM evaluations**.
 
-## What it demonstrates
+The project is deliberately narrow: it demonstrates the engineering patterns behind a real automation pilot without pretending to be a full SaaS product.
 
-- Python data processing
-- CSV/XLSX input
-- lightweight website text extraction
-- reusable raw-content cache
-- configurable prompt files outside application code
-- provider abstraction with deterministic mock mode
-- OpenAI and Anthropic adapters
-- Pydantic output validation
-- bounded retries and timeouts
-- row-level failure isolation
-- CSV and JSON result export
-- tests without paid API credentials
-- clean handover documentation
+## Why this exists
+
+A common business workflow looks like this:
+
+1. receive a CSV/XLSX list of companies,
+2. collect relevant website content,
+3. evaluate each company against a reusable prompt,
+4. validate the AI output,
+5. export results for downstream sales or research workflows.
+
+The interesting part is not the API call itself. The engineering value is in **repeatability, validation, failure isolation, reusable content, provider abstraction and clean handover**.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
     A[CSV / XLSX] --> B[Input validation]
-    B --> C[Website scraper]
-    C --> D[(Reusable raw content store)]
-    D --> E[Prompt selection]
+    B --> C[Website content adapter]
+    C --> D[(Reusable raw-content cache)]
+    D --> E[Prompt configuration]
     E --> F[LLM provider adapter]
     F --> G[Pydantic validation]
     G --> H[Per-row result]
     H --> I[CSV / JSON export]
 ```
 
-The important design choice is the split between **scraping** and **evaluation**. Raw website text is stored once and can be evaluated repeatedly with different prompt files without scraping again.
+### Design principles
+
+- **Collect once, evaluate many times**  
+  Website content is cached independently from customer-specific prompts.
+
+- **Configuration over code changes**  
+  Evaluation prompts live under `prompts/`.
+
+- **Structured output over free-form text**  
+  Provider results must satisfy a Pydantic schema before they are accepted.
+
+- **Row-level failure isolation**  
+  One failed website or model response does not terminate the batch.
+
+- **Provider abstraction**  
+  Deterministic mock mode plus OpenAI and Anthropic adapters.
+
+- **Zero-cost test path**  
+  The test suite and offline demo require no API credentials.
+
+- **Secrets stay outside the repository**  
+  API keys are read from environment variables only.
 
 ## Quick start
 
@@ -45,43 +64,20 @@ pip install -e ".[dev]"
 pytest
 ```
 
-Run the deterministic, fully offline demo using the included cached website fixtures:
+Run the deterministic offline demo:
 
 ```bash
-company-eval evaluate \
+company-eval demo \
   --input examples/companies.csv \
   --project company_evaluation \
-  --provider mock \
-  --raw-dir examples/raw \
   --output-dir out
 ```
 
-The tests and offline mock demo require no API key and no network access.
+This produces CSV and JSON results without network access or paid API calls.
 
-## Commands
+## Real website + provider run
 
-### 1. Scrape only
-
-```bash
-company-eval scrape \
-  --input examples/companies.csv \
-  --raw-dir data/raw
-```
-
-This stores normalized website content under `data/raw/`.
-
-### 2. Evaluate cached content
-
-```bash
-company-eval evaluate \
-  --input examples/companies.csv \
-  --project company_evaluation \
-  --provider mock \
-  --raw-dir data/raw \
-  --output-dir out
-```
-
-### 3. Scrape + evaluate
+Mock provider:
 
 ```bash
 company-eval run \
@@ -91,71 +87,84 @@ company-eval run \
   --output-dir out
 ```
 
-## Prompt configuration
-
-Each customer/project prompt is a plain text file:
-
-```text
-prompts/company_evaluation.txt
-prompts/customer_a.txt
-prompts/customer_b.txt
-```
-
-To add a new evaluation project, copy a prompt file, edit the text, and pass the filename stem with `--project`. No code change is required.
-
-## Live provider example
-
-Install an optional provider extra and set the API key via environment variable:
+OpenAI:
 
 ```bash
 pip install -e ".[openai]"
 export OPENAI_API_KEY="..."
-company-eval evaluate \
+company-eval run \
   --input examples/companies.csv \
   --project company_evaluation \
   --provider openai \
-  --model gpt-5.6-luna
+  --model gpt-5.6-luna \
+  --output-dir out
 ```
 
-Anthropic is available with `pip install -e ".[anthropic]"` and `ANTHROPIC_API_KEY`.
+Anthropic is available through the `anthropic` optional dependency and `ANTHROPIC_API_KEY`.
 
-API credentials are never written to the raw content store or output files.
+## Prompt configuration
 
-## Output schema
+Customer-specific evaluation logic is kept outside the application code.
 
-Every input row produces one output row, even if the website or model call fails.
+```text
+prompts/
+└── company_evaluation.txt
+```
 
-Core fields:
+A new evaluation project can use a new prompt file without changing the pipeline implementation.
 
-- `company_name`
-- `website`
-- `project`
-- `status`
-- `score`
-- `recommendation`
-- `cache_hit`
-- `error`
+## Output semantics
 
-A failed address does not terminate the whole batch.
+Each input row produces one result row.
+
+Possible states:
+
+- `SUCCESS`
+- `SCRAPE_ERROR`
+- `CACHE_MISS`
+- `EVALUATION_ERROR`
+
+Core output fields include:
+
+- company name
+- website
+- project
+- status
+- score
+- recommendation
+- rationale
+- cache-hit flag
+- error detail
+
+## Repository structure
+
+```text
+.github/workflows/     CI
+docs/                  architecture notes
+examples/              synthetic input
+prompts/               configurable evaluation prompts
+src/ai_company_eval/   implementation
+tests/                 deterministic tests
+```
 
 ## Scope boundaries
 
-This demo deliberately does not include:
+This reference intentionally excludes:
 
 - login-protected scraping
-- browser automation for JavaScript-heavy sites
-- scheduling
-- CRM integration
-- web UI
+- browser automation for JavaScript-heavy applications
 - large-scale crawling
+- CRM integration
+- scheduling
+- web UI
 - agent frameworks
 
-Those are separate product decisions, not hidden inside a small pilot.
+Those are separate implementation decisions and should be added only when a real business process requires them.
 
-## Responsible scraping note
+## Responsible use
 
-Use this only on sites you are permitted to access. Respect applicable terms, robots policies, privacy requirements, and reasonable request rates. This demo uses a descriptive User-Agent and a small page cap.
+Only collect content you are permitted to access. Respect applicable terms, privacy requirements, robots policies and reasonable request rates.
 
-## Repository purpose
+## Portfolio note
 
-This project is a clean-room portfolio asset built from generic requirements. It contains no employer, client, private-project, trading-strategy, or proprietary source code.
+This repository is a **clean-room technical portfolio asset** built from generic requirements. It contains no employer, client, private-project, trading-strategy or proprietary source code.
