@@ -68,7 +68,7 @@ used for acceptance, and tests deny network sockets and remove inherited keys.
 
 CI installs development and web extras and runs the suite plus compilation.
 Render configuration uses a free Python service, the health route, explicit
-portfolio flags, no secrets or persistent disk, and `autoDeploy: false`.
+portfolio flags, no secrets or persistent disk, and `autoDeployTrigger: off`.
 It has not been deployed or validated against a running Render service.
 
 Two nonblocking warnings originate in the installed Starlette test client:

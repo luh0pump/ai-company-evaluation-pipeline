@@ -110,6 +110,6 @@ Tests cover the original CLI/core, web routes and packaged assets from another w
 
 ## Deployment readiness
 
-`render.yaml` prepares a free Python web service with `/health`, explicit portfolio settings and **`autoDeploy: false`**. It installs the package with its web extra and runs Uvicorn on the platform's `$PORT`. Debug and access logging are disabled; no secrets or persistent disk are configured. All demo state is ephemeral.
+`render.yaml` prepares a free Python web service with `/health`, explicit portfolio settings and **`autoDeployTrigger: off`**. It installs the package with its web extra and runs Uvicorn on the platform's `$PORT`. Debug and access logging are disabled; no secrets or persistent disk are configured. All demo state is ephemeral.
 
 The configuration is prepared for review only. No Render resources, public URL, deployment or merge are part of this implementation. Actual deployment requires a separate decision after Architect review.
