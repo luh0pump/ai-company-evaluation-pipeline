@@ -5,6 +5,7 @@ import json
 import os
 
 from .models import CompanyRecord, EvaluationResult, ScrapedContent
+from .config import Settings
 
 
 class MockProvider:
@@ -28,7 +29,8 @@ class MockProvider:
 
 
 class OpenAIProvider:
-    def __init__(self, *, model: str, timeout_seconds: float = 30.0) -> None:
+    def __init__(self, *, model: str | None = None, timeout_seconds: float = 30.0) -> None:
+        model = Settings.from_env().live_model("openai", model)
         try:
             from openai import OpenAI
         except ImportError as exc:
@@ -57,7 +59,8 @@ class OpenAIProvider:
 
 
 class AnthropicProvider:
-    def __init__(self, *, model: str, timeout_seconds: float = 30.0) -> None:
+    def __init__(self, *, model: str | None = None, timeout_seconds: float = 30.0) -> None:
+        model = Settings.from_env().live_model("anthropic", model)
         try:
             from anthropic import Anthropic
         except ImportError as exc:
@@ -89,7 +92,7 @@ class AnthropicProvider:
         return EvaluationResult.model_validate_json(text)
 
 
-def build_provider(name: str, *, model: str):
+def build_provider(name: str, *, model: str | None = None):
     normalized = name.lower().strip()
     if normalized == "mock":
         return MockProvider()

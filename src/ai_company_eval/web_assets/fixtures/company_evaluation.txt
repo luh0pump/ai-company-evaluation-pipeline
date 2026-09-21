@@ -1,0 +1,4 @@
+Evaluate relevance for a hypothetical B2B operations campaign.
+Use only the supplied company notes and cached website content.
+Return a score (0–100), recommendation and concise rationale.
+Be conservative when evidence is incomplete. Never invent facts.

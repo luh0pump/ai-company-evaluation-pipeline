@@ -93,3 +93,25 @@ def test_invalid_structured_output_is_rejected(tmp_path: Path):
 
     assert rows[0].status == RowStatus.EVALUATION_ERROR
     assert rows[0].score is None
+
+
+def test_exception_details_are_not_persisted(tmp_path):
+    company = CompanyRecord(company_name="Test", website="https://example.test")
+    sentinel = "TEST_ONLY_PRIVATE_ERROR"
+
+    class FailingAdapter:
+        def evaluate(self, **kwargs):
+            raise RuntimeError(sentinel)
+
+        def fetch(self, company):
+            raise RuntimeError(sentinel)
+
+    store = RawContentStore(tmp_path)
+    arguments = dict(project="p", prompt="prompt", provider=FailingAdapter(), store=store, fetcher=FailingAdapter())
+    failed_fetch = run_pipeline([company], **arguments)[0]
+    assert failed_fetch.status == RowStatus.SCRAPE_ERROR
+    assert sentinel not in failed_fetch.model_dump_json()
+    store.put(ScrapedContent(company_name="Test", website=str(company.website), combined_text="fixture", content_sha256="fixture"))
+    failed_provider = run_pipeline([company], **arguments)[0]
+    assert failed_provider.status == RowStatus.EVALUATION_ERROR
+    assert sentinel not in failed_provider.model_dump_json()

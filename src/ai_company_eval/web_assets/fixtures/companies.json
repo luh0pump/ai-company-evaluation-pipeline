@@ -1,0 +1,10 @@
+[
+  {"company": {"company_name": "Veldora Motion", "website": "https://veldora.example", "notes": "Industrial automation · Controls for mid-sized factories."}, "content": "Synthetic fixture: Veldora builds industrial automation controls for factory assembly lines."},
+  {"company": {"company_name": "Orvessa Cloud", "website": "https://orvessa.example", "notes": "B2B SaaS · Workflow tools for operations teams."}, "content": "Synthetic fixture: Orvessa provides B2B software for approval workflows and team operations."},
+  {"company": {"company_name": "Talvex Dataworks", "website": "https://talvex.example", "notes": "Data infrastructure · Connectors for internal systems."}, "content": "Synthetic fixture: Talvex offers a data integration API and managed connectors for internal systems."},
+  {"company": {"company_name": "Nembrix Route", "website": "https://nembrix.example", "notes": "Logistics software · Dispatch planning for regional fleets."}, "content": "Synthetic fixture: Nembrix develops software for dispatch planning and delivery tracking."},
+  {"company": {"company_name": "Caldrin Works", "website": "https://caldrin.example", "notes": "Manufacturing technology · Inspection tools for workshops."}, "content": "Synthetic fixture: Caldrin makes industrial measurement tools for production quality checks."},
+  {"company": {"company_name": "Elyndra Advisory", "website": "https://elyndra.example", "notes": "Professional services · Procurement and process consulting."}, "content": "Synthetic fixture: Elyndra advises regional firms on procurement and operational processes."},
+  {"company": {"company_name": "Brindlewick Bakehouse", "website": "https://brindlewick.example", "notes": "Local business · A neighborhood bakery and café."}, "content": "Synthetic fixture: Brindlewick sells fresh bread, pastries and coffee to neighborhood residents."},
+  {"company": {"company_name": "Ossira Systems", "website": "https://ossira.example", "notes": "Incomplete fixture · Cached content intentionally omitted to demonstrate failure isolation."}, "content": null}
+]

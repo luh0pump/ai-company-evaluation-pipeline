@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A deterministic company evaluation demo with reusable content, validated output and isolated failures.">
+  <title>AI Company Evaluation Pipeline</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
+  <script src="{{ url_for('static', path='/app.js') }}" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="header">
+      <div>
+        <div class="eyebrow"><span class="mark" aria-hidden="true">▥</span> RESEARCH OPERATIONS <span class="divider">/</span> WEB DEMO V1</div>
+        <h1>AI Company Evaluation Pipeline</h1>
+        <p class="subtitle">Structured company research and evaluation with validated LLM-ready outputs.</p>
+      </div>
+      <div class="header-meta">
+        <span class="mode-badge"><span class="dot"></span> {{ 'Portfolio Demo' if mode == 'portfolio' else 'Local mode · offline web demo' }}</span>
+        <div class="tech-badges"><span>Python</span><span>FastAPI</span><span>Pydantic</span><span>LLM-ready</span><span>CI tested</span></div>
+      </div>
+    </header>
+
+    <nav class="pipeline" aria-label="Pipeline stages">
+      <span><b>01</b> Company input</span><i aria-hidden="true">→</i>
+      <span><b>02</b> Reusable content</span><i aria-hidden="true">→</i>
+      <span><b>03</b> Evaluation</span><i aria-hidden="true">→</i>
+      <span><b>04</b> Schema validation</span><i aria-hidden="true">→</i>
+      <span><b>05</b> Structured output</span>
+    </nav>
+
+    <main class="workspace">
+      <aside class="config panel" aria-labelledby="config-title">
+        <div class="panel-heading"><h2 id="config-title">Run configuration</h2><span class="small-label">FIXED DEMO</span></div>
+        <div class="config-body">
+          <label class="field-label">DATASET</label>
+          <div class="dataset"><strong>Synthetic portfolio dataset</strong><span>8 companies <span aria-hidden="true">·</span> 7 cached pages</span><span class="tag">Synthetic demo data</span></div>
+          <label class="field-label">EVALUATION PROVIDER</label>
+          <div class="provider"><span><strong>Demo / Deterministic</strong><small>Repeatable, zero-cost evaluation</small></span><span class="active-label">ACTIVE</span></div>
+          <label class="field-label" for="prompt">PROJECT / PROMPT <span class="read-only">READ-ONLY</span></label>
+          <div class="project-name">company_evaluation</div>
+          <textarea id="prompt" readonly rows="6" spellcheck="false">{{ prompt }}</textarea>
+          <p class="helper">The demo uses a deterministic scoring adapter. No live model is called.</p>
+          <button type="button" id="run" class="primary">Run Evaluation <span aria-hidden="true">→</span></button>
+          <button type="button" id="reset" class="reset" disabled>Reset Demo</button>
+        </div>
+        <div class="local-capabilities">
+          <h3>Local / Self-hosted</h3>
+          <p>Extend the same pipeline through the CLI.</p>
+          <div><span>OpenAI</span><span class="local-label">LOCAL ONLY</span></div>
+          <div><span>Anthropic</span><span class="local-label">LOCAL ONLY</span></div>
+          <p class="helper">CSV / XLSX input, editable prompts and opt-in website fetching. Live providers require explicit enablement, credentials and a model.</p>
+        </div>
+      </aside>
+
+      <section class="results" aria-labelledby="results-title">
+        <div class="kpis" aria-label="Run summary">
+          <div class="kpi"><span>Companies</span><strong id="kpi-companies">—</strong><small>total input rows</small></div>
+          <div class="kpi"><span>Successful</span><strong id="kpi-successful" class="positive">—</strong><small>validated outputs</small></div>
+          <div class="kpi"><span>Failed</span><strong id="kpi-failed" class="negative">—</strong><small>isolated rows</small></div>
+          <div class="kpi"><span>Average Score</span><strong id="kpi-average_score">—</strong><small>successful rows / 100</small></div>
+          <div class="kpi"><span>Cache Rate</span><strong id="kpi-cache_rate">—</strong><small>reused content</small></div>
+          <div class="kpi"><span>Runtime</span><strong id="kpi-runtime_ms">—</strong><small>measured on server</small></div>
+        </div>
+
+        <div class="panel results-panel">
+          <div class="results-heading">
+            <div><h2 id="results-title">Evaluation results</h2><p id="result-caption">Ready to evaluate the synthetic dataset.</p></div>
+            <div class="exports"><button type="button" id="export-csv" disabled>Export CSV</button><button type="button" id="export-json" disabled>Export JSON</button></div>
+          </div>
+          <div id="run-message" class="run-message" role="status" aria-live="polite">Run the pipeline to inspect scores, validation and per-row outcomes.</div>
+          <div id="empty" class="empty-state"><span class="empty-symbol" aria-hidden="true">≡</span><h3>From company input to a useful result.</h3><p>One run. Eight synthetic companies. Each row handled independently.</p><p class="helper">Select Run Evaluation to begin. No credentials or external requests.</p></div>
+          <div id="table-wrap" class="table-wrap" hidden>
+            <table>
+              <caption class="sr-only">Synthetic company evaluation results. Select a company to inspect its details.</caption>
+              <thead><tr><th scope="col">Company</th><th scope="col">Website</th><th scope="col">Score</th><th scope="col">Recommendation</th><th scope="col">Status</th><th scope="col">Cache</th></tr></thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+          <div class="table-footer"><span id="row-count">No results yet</span><span>Select a company for rationale &amp; validation details</span></div>
+        </div>
+
+        <section id="detail" class="panel detail" aria-labelledby="detail-title" hidden>
+          <div class="panel-heading"><h2 id="detail-title">Company details</h2><button id="close-detail" type="button" aria-label="Close company details">Close</button></div>
+          <dl id="detail-fields"></dl>
+        </section>
+        <p class="result-note"><span class="dot"></span> Failure isolation in practice: the incomplete fixture returns CACHE_MISS while other rows complete.</p>
+      </section>
+    </main>
+
+    <section class="proof-strip" aria-label="Engineering proof">
+      <div><span>01 / VALIDATION</span><strong>Schema-checked output</strong><p>Scores and responses validated with Pydantic.</p></div>
+      <div><span>02 / ADAPTERS</span><strong>Provider abstraction</strong><p>One pipeline, interchangeable evaluators.</p></div>
+      <div><span>03 / REUSE</span><strong>Reusable content cache</strong><p>Separate collected content from evaluation.</p></div>
+      <div><span>04 / RESILIENCE</span><strong>Row-level failure isolation</strong><p>A missing page never stops the batch.</p></div>
+      <div><span>05 / REPEATABILITY</span><strong>Deterministic demo mode</strong><p>Bundled fixtures. No network or API cost.</p></div>
+    </section>
+    <footer><span>ENGINEERED FOR INSPECTION <span class="divider">/</span> Python reference implementation</span><span>Fictional companies · Illustrative scores · No real sales assessment</span></footer>
+    <noscript><p class="run-message">Enable JavaScript to run the demo and download results.</p></noscript>
+  </div>
+</body>
+</html>

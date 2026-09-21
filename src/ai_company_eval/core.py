@@ -9,6 +9,7 @@ from typing import Protocol
 
 import httpx
 from bs4 import BeautifulSoup
+from pydantic import ValidationError
 
 from .models import CompanyRecord, EvaluationResult, PipelineRow, RowStatus, ScrapedContent
 
@@ -16,6 +17,12 @@ from .models import CompanyRecord, EvaluationResult, PipelineRow, RowStatus, Scr
 class Provider(Protocol):
     def evaluate(self, *, company: CompanyRecord, content: ScrapedContent, prompt: str) -> EvaluationResult:
         ...
+
+
+class ContentStore(Protocol):
+    def get(self, url: str) -> ScrapedContent | None: ...
+
+    def put(self, content: ScrapedContent) -> None: ...
 
 
 def load_companies(path: str | Path) -> list[CompanyRecord]:
@@ -111,7 +118,7 @@ def run_pipeline(
     project: str,
     prompt: str,
     provider: Provider,
-    store: RawContentStore,
+    store: ContentStore,
     fetcher: WebsiteFetcher | None = None,
 ) -> list[PipelineRow]:
     rows: list[PipelineRow] = []
@@ -134,13 +141,13 @@ def run_pipeline(
             try:
                 cached = fetcher.fetch(company)
                 store.put(cached)
-            except Exception as exc:
+            except Exception:
                 rows.append(PipelineRow(
                     company_name=company.company_name,
                     website=str(company.website),
                     project=project,
                     status=RowStatus.SCRAPE_ERROR,
-                    error=str(exc),
+                    error="website content could not be fetched",
                 ))
                 continue
 
@@ -164,7 +171,7 @@ def run_pipeline(
                 project=project,
                 status=RowStatus.EVALUATION_ERROR,
                 cache_hit=cache_hit,
-                error=str(exc),
+                error="provider output failed validation" if isinstance(exc, ValidationError) else "provider evaluation failed",
             ))
 
     return rows
