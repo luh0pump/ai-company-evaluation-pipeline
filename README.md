@@ -12,6 +12,8 @@ The engineering focus is repeatability, provider abstraction, content reuse and 
 
 ## Web Demo
 
+**Live portfolio demo:** https://ai-company-evaluation-pipeline.onrender.com
+
 The dark, compact interface includes a read-only prompt preview, calculated run summaries, a result table, company details and downloadable CSV / JSON. Select **Run Evaluation** to execute the existing pipeline against packaged synthetic content.
 
 Every run contains **8 fictional companies: 7 successful evaluations and 1 intentional `CACHE_MISS`**. That fixture has no cached content, so the pipeline truthfully skips evaluation. Scores are illustrative deterministic mock output, not a real sales assessment. Results repeat; measured runtime varies.
@@ -20,7 +22,7 @@ Every run contains **8 fictional companies: 7 successful evaluations and 1 inten
 - `GET /health` — cheap JSON status and application mode
 - `POST /api/demo/run` — fixed synthetic dataset, no body or query parameters
 
-Exports contain the complete current run rows, including input notes, full recommendations, rationale, processing status, validation status, cache status and errors. No screenshot is included pending Architect visual acceptance.
+Exports contain the complete current run rows, including input notes, full recommendations, rationale, processing status, validation status, cache status and errors.
 
 ## Portfolio Demo vs Local/Self-hosted
 
@@ -108,8 +110,8 @@ git diff --check
 
 Tests cover the original CLI/core, web routes and packaged assets from another working directory, deterministic 8/7/1 behavior, validation failures, calculated summaries, CSV/JSON round trips, forbidden public fetch/provider paths, configuration gates, safe errors and CLI launch defaults. All tests run offline without secrets. CI installs both development and web extras and runs tests plus compilation.
 
-## Deployment readiness
+## Deployment
 
 `render.yaml` prepares a free Python web service with `/health`, explicit portfolio settings and **`autoDeployTrigger: off`**. It installs the package with its web extra and runs Uvicorn on the platform's `$PORT`. Debug and access logging are disabled; no secrets or persistent disk are configured. All demo state is ephemeral.
 
-The configuration is prepared for review only. No Render resources, public URL, deployment or merge are part of this implementation. Actual deployment requires a separate decision after Architect review.
+The portfolio demo is deployed on Render from `main` at https://ai-company-evaluation-pipeline.onrender.com. The public service runs in `APP_MODE=portfolio` with live fetching and live providers disabled. Auto-deploy remains off so releases stay explicit.
